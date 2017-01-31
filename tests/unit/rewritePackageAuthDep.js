@@ -23,6 +23,7 @@ var path = require('path');
 var merge = require('lodash.merge');
 var noop = require('lodash.noop');
 var rewritePackageAuthDep = require('../../rewritePackageAuthDep.js');
+var newUrl = 'git://github.com/cristiancavalli/google-auth-library-nodejs.git#replace-with-raw-http';
 
 describe('Overwriting the google-auth-library depedency', function () {
   var pth = path.resolve('./tests/fixtures/standard-package.json');
@@ -41,14 +42,10 @@ describe('Overwriting the google-auth-library depedency', function () {
   });
   it('Should overwrite the fixture', function (done) {
     rewritePackageAuthDep(pth, 
-      'git://github.com/cristiancavalli/google-auth-library-nodejs.git#replace-with-raw-http',
+      newUrl,
       function (output) {
-        console.log('DONE!');
-        console.log(output.path);
-        console.log('--');
-        console.log(output.oldData);
-        console.log('--');
-        console.log(output.newData);
+        assert.strictEqual(output.newData.dependencies['google-auth-library'],
+          newUrl);
         done();
       }
     );
