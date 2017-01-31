@@ -1,0 +1,22 @@
+{
+  "name": "docker-integration-asset-package",
+  "version": "1.0.0",
+  "description": "Package providing utils for docker integration tests",
+  "main": "index.js",
+  "scripts": {
+    "test": "$(npm bin)/mocha ./tests/unit/*.js"
+  },
+  "author": "Google Inc.",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "mocha": "^3.2.0"
+  },
+  "dependencies": {
+    "colors": "^1.1.2",
+    "event-stream": "^3.3.4",
+    "json-stream": "^1.0.0",
+    "lodash.isfunction": "^3.0.8",
+    "lodash.merge": "^4.6.0",
+    "lodash.noop": "^3.0.1"
+  }
+}
