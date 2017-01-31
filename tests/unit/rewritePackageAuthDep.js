@@ -43,7 +43,8 @@ describe('Overwriting the google-auth-library depedency', function () {
   it('Should overwrite the fixture', function (done) {
     rewritePackageAuthDep(pth, 
       newUrl,
-      function (output) {
+      function (e, output) {
+        assert.strictEqual(e, null);
         assert.strictEqual(output.newData.dependencies['google-auth-library'],
           newUrl);
         done();

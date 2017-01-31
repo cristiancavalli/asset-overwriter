@@ -40,7 +40,7 @@ var isFunction = require('lodash.isfunction');
 function rewritePackage (pathToPackageFile, newDependencyLocation, cb) {
   var oldData = {};
   var newData = {};
-  var pth = path.resolve(pathToPackageFile);
+  var pth = path.resolve(process.cwd(), pathToPackageFile);
   return fs.createReadStream(pth).pipe(es.wait())
     .pipe(es.mapSync(function (buf) {
       try {
@@ -80,7 +80,7 @@ function rewritePackage (pathToPackageFile, newDependencyLocation, cb) {
       writeStream.on('finish', function () {
         console.log(colors.green('Write finished successfully!!'));
         if(isFunction(cb)) {
-          cb({
+          cb(null, {
             oldData: oldData,
             newData: newData,
             path: pth
@@ -92,6 +92,9 @@ function rewritePackage (pathToPackageFile, newDependencyLocation, cb) {
       console.log(colors.red.underline(
         'Encountered an error trying to overwrite the package'));
       console.log(colors.debug(e));
+      if(isFunction(cb)) {
+        cb(e, null);
+      }
     });
 };
 
