@@ -25,7 +25,7 @@ var noop = require('lodash.noop');
 var rewritePackageAuthDep = require('../../rewritePackageAuthDep.js');
 var newUrl = 'git://github.com/cristiancavalli/google-auth-library-nodejs.git#replace-with-raw-http';
 
-describe('Overwriting the google-auth-library depedency', function () {
+describe('Overwriting a single google-auth-library dependency', function () {
   var pth = path.resolve('./tests/fixtures/standard-package.json');
   var originalContents;
   before(function () {

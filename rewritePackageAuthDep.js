@@ -34,23 +34,33 @@ var path = require('path');
 var Readable = require('stream').Readable
 var es = require('event-stream');
 var merge = require('lodash.merge');
+var every = require('lodash.every');
 var noop = require('lodash.noop');
+var has = require('lodash.has');
+var isObject = require('lodash.isobject');
 var isFunction = require('lodash.isfunction');
+var findit = require('findit');
+var EventEmitter = require('events').EventEmitter;
 
-function rewritePackage (pathToPackageFile, newDependencyLocation, cb) {
+function overwriteFile (pth, newDependencyLocation, cb) {
   var oldData = {};
   var newData = {};
-  var pth = path.resolve(process.cwd(), pathToPackageFile);
   return fs.createReadStream(pth).pipe(es.wait())
     .pipe(es.mapSync(function (buf) {
       try {
         merge(oldData, JSON.parse(buf.toString()));
-        merge(newData, oldData, {
-          dependencies: {
-            "google-auth-library": newDependencyLocation
-          }
-        });
-        console.log(colors.info('Package parsed, new package created..'));
+        if (has(oldData, 'dependencies') &&
+          has(oldData.dependencies, 'google-auth-library')) {
+            console.log(colors.info('Existing package parsed; new package created with new asset location'));
+            merge(newData, oldData, {
+              dependencies: {
+                "google-auth-library": newDependencyLocation
+              }
+            }); 
+        } else {
+          console.log(colors.warn('Existing package parsed; package lacked target dependency -- further modification has been omitted'))
+          merge(newData, oldData);
+        }
         return Buffer.from(JSON.stringify(newData));
       } catch (e) {
         console.log('got e', e);
@@ -76,7 +86,8 @@ function rewritePackage (pathToPackageFile, newDependencyLocation, cb) {
       s.pipe(writeStream);
       
       return writeStream;
-    })).pipe(es.mapSync(function (writeStream) {
+    }))
+    .pipe(es.mapSync(function (writeStream) {
       writeStream.on('finish', function () {
         console.log(colors.green('Write finished successfully!!'));
         if(isFunction(cb)) {
@@ -88,7 +99,8 @@ function rewritePackage (pathToPackageFile, newDependencyLocation, cb) {
         }
       });
       return writeStream;
-    })).on('error', function (e) {
+    }))
+    .on('error', function (e) {
       console.log(colors.red.underline(
         'Encountered an error trying to overwrite the package'));
       console.log(colors.debug(e));
@@ -96,6 +108,63 @@ function rewritePackage (pathToPackageFile, newDependencyLocation, cb) {
         cb(e, null);
       }
     });
+}
+
+function overwriteWithinPattern (globPattern, newDependencyLocation, cb) {
+  var oldData = [];
+  var newData = [];
+  var progressGate = new EventEmitter();
+  progressGate._finderComplete = false;
+  progressGate.isComplete = function () {
+    return progressGate._finderComplete &&
+      every(newData, ['overwriteComplete', true]);
+  }
+  progressGate.attemptResolution = function () {
+    if (progressGate.isComplete()) {
+      cb(null, {
+        oldData: oldData,
+        newData: newData.map(v => v.data),
+        pattern: globPattern
+      });
+    }
+  }
+  progressGate.on('finderComplete', function () {
+    progressGate._finderComplete = true;
+    progressGate.attemptResolution();
+  });
+  var finder = findit(globPattern.base)
+    .on('file', function (file) {
+      if (globPattern.pattern.test(file)) {
+        var index = newData.length;
+        oldData.push({});
+        newData.push({
+          data: null,
+          overwriteComplete: false,
+          operator: overwriteFile(file, newDependencyLocation, function (err, data) {
+            if (err) {
+              throw new Error(err.message);
+            }
+            newData[index].data = data.newData;
+            newData[index].overwriteComplete = true;
+            oldData[index] = data.oldData;
+            progressGate.attemptResolution();
+          })
+        });
+      }
+    })
+    .on('end', function () {
+      progressGate.emit('finderComplete');
+    });
+};
+
+function rewritePackage (pathToPackageFile, newDependencyLocation, cb) {
+  var pth; 
+  if (!isObject(pathToPackageFile)) {
+    pth = path.resolve(process.cwd(), pathToPackageFile);
+    return overwriteFile(pth, newDependencyLocation, cb);
+  }
+  pth = merge({}, pathToPackageFile, {base: path.resolve(process.cwd(), pathToPackageFile.base)});
+  return overwriteWithinPattern(pth, newDependencyLocation, cb);
 };
 
 module.exports = rewritePackage;

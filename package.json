@@ -14,8 +14,12 @@
   "dependencies": {
     "colors": "^1.1.2",
     "event-stream": "^3.3.4",
+    "findit": "^2.0.0",
     "json-stream": "^1.0.0",
+    "lodash.every": "^4.6.0",
+    "lodash.has": "^4.5.2",
     "lodash.isfunction": "^3.0.8",
+    "lodash.isobject": "^3.0.2",
     "lodash.merge": "^4.6.0",
     "lodash.noop": "^3.0.1",
     "yargs": "^6.6.0"

@@ -14,16 +14,7 @@
  * limitations under the License.
  */
 
-var argv = require('yargs').argv;
-var rewritePackageAuthDep = require('./rewritePackageAuthDep.js');
-
-if (!argv.target) {
-  throw new Error('Must provide a new target to point to via --target option');
-} else if (!argv.package) {
-  throw new Error('Must provide a package path to overwrite via --package option');
-}
-
-rewritePackageAuthDep(argv.package, argv.target, function (e, output) {
+function finish (e, output) {
   if (e) {
     console.log('Encountered Error:');
     console.log(e);
@@ -31,4 +22,27 @@ rewritePackageAuthDep(argv.package, argv.target, function (e, output) {
   }
   console.log('Write complete; new package contents:');
   console.log(JSON.stringify(output.newData, null, 2));
-});
+}
+
+var argv = require('yargs').argv;
+var rewritePackageAuthDep = require('./rewritePackageAuthDep.js');
+var globOpts = {
+  base: null,
+  pattern: null
+}
+
+if (!argv.target) {
+  throw new Error('Must provide a new target to point to via --target option');
+} else if (!argv.package && !(argv.base && argv.pattern)) {
+  throw new Error('Must provide a package path to overwrite via --package option');
+}
+
+if (argv.base && argv.pattern) {
+  globOpts.base = argv.base;
+  globOpts.pattern = new RegExp(argv.pattern);
+  rewritePackageAuthDep(globOpts, argv.target, finish);
+} else {
+  rewritePackageAuthDep(argv.package, argv.target, finish);
+}
+
+
