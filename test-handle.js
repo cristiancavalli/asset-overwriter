@@ -1,6 +1,7 @@
+const argv = require('yargs').argv;
 const spawn = require('child_process').spawn;
 const got = require('got');
-const PR_URL = process.env.PR_URL;
+const PR_URL = argv.pr;
 const COMMENTS_URL = PR_URL.replace('/pulls/', '/issues/').concat('/comments');
 const BUILD_FAILED = 'INTEGRATION TESTS FAILED';
 const BUILD_PASSED = 'INTEGRATION TESTS PASSED';
@@ -11,6 +12,7 @@ const reported = (function () {
   _get.flip = () => _reported = true;
   return _get;
 })();
+
 
 function addComment (comment) {
   console.log('Sending comment to:\n\t', COMMENTS_URL);
@@ -31,6 +33,10 @@ function addComment (comment) {
     console.warn('Got error trying to post comment');
     console.error(error)
   });
+}
+
+if (!PR_URL) {
+  throw new Error('Must supply a pull request url via --pr=url option');
 }
 
 console.log('Got PR url:\n\t', PR_URL);
