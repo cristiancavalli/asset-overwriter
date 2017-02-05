@@ -1,6 +1,6 @@
 const spawn = require('child_process').spawn;
 const got = require('got');
-const PR_URL = process.argv0;
+const PR_URL = process.env.PR_URL;
 const COMMENTS_URL = PR_URL.replace('/pulls/', '/issues/').concat('/comments');
 const BUILD_FAILED = 'INTEGRATION TESTS FAILED';
 const BUILD_PASSED = 'INTEGRATION TESTS PASSED';
