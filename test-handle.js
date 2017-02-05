@@ -33,6 +33,7 @@ function addComment (comment) {
   });
 }
 
+console.log('Got PR url:\n\t', PR_URL);
 const s = spawn('npm', ['test'])
   .on('error', function (e) {
     reported.flip();
