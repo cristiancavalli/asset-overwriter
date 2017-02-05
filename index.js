@@ -37,6 +37,8 @@ if (!argv.target) {
   throw new Error('Must provide a package path to overwrite via --package option');
 }
 
+console.log('We are rewriting the package with', argv.package, '\n', argv);
+
 if (argv.base && argv.pattern) {
   globOpts.base = argv.base;
   globOpts.pattern = new RegExp(argv.pattern);
