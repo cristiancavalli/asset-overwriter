@@ -13,6 +13,7 @@ const reported = (function () {
 })();
 
 function addComment (comment) {
+  console.log('Sending comment to:\n\t', COMMENTS_URL);
   got.post(COMMENTS_URL, {
     body: JSON.stringify({body: comment}),
     json: true,
